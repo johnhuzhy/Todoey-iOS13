@@ -7,17 +7,14 @@
 //
 
 import UIKit
-import CoreData
 import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-//    var categoryArray = [Category]()
     var categoryArray: Results<Category>?
     
     let realm = try! Realm()
-//    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -37,12 +34,11 @@ class CategoryViewController: UITableViewController {
             if let inputContext = textField.text {
                 
                 // New Object
-//                let newCategory = Category(context: self.context)
                 let newCategory = Category()
                 
                 newCategory.name = inputContext
-//                self.categoryArray.append(newCategory)
-//                self.saveCategories()
+                newCategory.createDate = Date()
+                
                 self.addCatagory(with: newCategory)
             }
         }
@@ -89,13 +85,6 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        // 先にデータを削除しないと、エラーが発生します。
-//        context.delete(categoryArray[indexPath.row])
-//        categoryArray.remove(at: indexPath.row)
-
-//        tableView.deleteRows(at: [indexPath], with: .automatic)
-//        saveCategories()
-        
         if let category = categoryArray?[indexPath.row] {
             do{
                 try realm.write {
@@ -112,28 +101,6 @@ class CategoryViewController: UITableViewController {
 //MARK: - Data-CRUD
 
 extension CategoryViewController {
-    /**
-     * CoreData 用
-     *
-    func saveCategories(){
-        do {
-            try self.context.save()
-        } catch {
-            print("データ登録にエラー発生：\(error)")
-        }
-        tableView.reloadData()
-    }
-    
-    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest() ){
-        do {
-            categoryArray = try context.fetch(request)
-        } catch {
-            print("データ読込にエラー発生：\(error)")
-        }
-        tableView.reloadData()
-    }
-    */
-    
     func addCatagory(with category: Category) {
         do {
             try realm.write {

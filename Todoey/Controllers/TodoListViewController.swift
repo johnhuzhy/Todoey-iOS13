@@ -7,12 +7,10 @@
 //
 
 import UIKit
-import CoreData
 import RealmSwift
 
 class TodoListViewController: UITableViewController {
-    
-//    var itemArray = [Item]()
+
     var itemArray: Results<Item>?
     var category: Category? {
         didSet{
@@ -21,15 +19,12 @@ class TodoListViewController: UITableViewController {
     }
     
     let realm = try! Realm()
-//    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
-        
-//        loadItems()
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -45,13 +40,11 @@ class TodoListViewController: UITableViewController {
             if let inputTitle = textField.text {
                 
                 // New Object
-//                let newItem = Item(context: self.context)
                 let newItem = Item()
                 
                 newItem.title = inputTitle
-//                newItem.parentCategory = self.category
-//                self.itemArray.append(newItem)
-//                self.saveItems()
+                newItem.createDate = Date()
+                
                 self.addItem(with: newItem)
             }
         }
@@ -86,11 +79,6 @@ extension TodoListViewController {
 
 extension TodoListViewController{
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //        print(itemArray[indexPath.row])
-        
-//        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-//        saveItems()
-        
         if let item = itemArray?[indexPath.row] {
             do{
                 try realm.write {
@@ -114,12 +102,6 @@ extension TodoListViewController{
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        // 先にデータを削除しないと、エラーが発生します。
-//        context.delete(itemArray[indexPath.row])
-//        itemArray.remove(at: indexPath.row)
-
-//        tableView.deleteRows(at: [indexPath], with: .automatic)
-//        saveItems()
         if let item = itemArray?[indexPath.row] {
             do{
                 try realm.write {
@@ -136,36 +118,6 @@ extension TodoListViewController{
 //MARK: - Data-CRUD
 
 extension TodoListViewController {
-    /**
-     * CoreData 用
-     *
-    func saveItems(){
-        do {
-            try self.context.save()
-        } catch {
-            print("データ登録にエラー発生：\(error)")
-        }
-        tableView.reloadData()
-    }
-    
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil){
-        do {
-            let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", category!.name!)
-            
-            if let addiontalPredicate = predicate {
-                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, addiontalPredicate])
-            } else {
-                request.predicate = categoryPredicate
-            }
-            
-            itemArray = try context.fetch(request)
-        } catch {
-            print("データ読込にエラー発生：\(error)")
-        }
-        tableView.reloadData()
-    }
-     */
-    
     func addItem(with item: Item) {
         if let currentCategory = category {
             do {
@@ -175,13 +127,13 @@ extension TodoListViewController {
             } catch {
                 print("データ登録にエラー発生：\(error)")
             }
+            tableView.reloadData()
         }
-        tableView.reloadData()
     }
     
     func loadItems(){
         if (category?.items.count ?? 0) > 0 {
-            itemArray = category?.items.sorted(byKeyPath: "title", ascending: true)
+            itemArray = category?.items.sorted(byKeyPath: "createDate", ascending: true)
         }
         tableView.reloadData()
     }
@@ -190,17 +142,10 @@ extension TodoListViewController {
 //MARK: - UISearchBarDelegate
 
 extension TodoListViewController: UISearchBarDelegate {
-    /**
-     * CoreData 用
-     *
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        
-        let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        
-        loadItems(with: request, predicate: titlePredicate)
+        itemArray = itemArray?.filter("title CONTAINS[cd] %@", searchBar.text!)
+            .sorted(byKeyPath: "createDate")
+        tableView.reloadData()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -212,5 +157,5 @@ extension TodoListViewController: UISearchBarDelegate {
             }
         }
     }
-     */
+
 }
